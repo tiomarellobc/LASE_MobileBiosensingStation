@@ -20,7 +20,7 @@ window.resizable(False,False)
 secondary_window = Toplevel()
 secondary_window.title("Live Plotting")
 
-fig = Figure(figsize=(6,6), dpi=100)
+fig = Figure(figsize=(7,7), dpi=100)
 LivePlot = fig.add_subplot(111)
 LivePlot.set_xlabel("Gate Voltage (V)")
 LivePlot.set_ylabel("Resistance (Ohms)")
@@ -117,10 +117,12 @@ def Begin_Measurement():
     
     LivePlot.legend()
     LivePlot.set_xlim(0, end_vG/1000)
+    LivePlot.set_xlabel("Gate Voltage (V)")
+    LivePlot.set_ylabel("Resistance (Ohms)")
     ###End Matplotlib Section
 
-    path = File_Path.cget()
-    final_path = path+File_Name.get()
+    path = File_Path.cget("text")
+    final_path = path+"/"+File_Name.get()
 
     if(os.path.exists(final_path+".csv")):
         mode = "a"
