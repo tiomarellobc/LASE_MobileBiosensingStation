@@ -8,6 +8,7 @@ import csv
 import time
 import os
 from threading import *
+import pandas as pd
 #Matplotlib
 
 from matplotlib.figure import Figure
@@ -37,6 +38,7 @@ Aborted = False
 
 _filePath = ""
 _fileName = ""
+
 
 
 def Get_File_Path():
@@ -121,6 +123,8 @@ def Begin_Measurement():
     LivePlot.set_ylabel("Resistance (Ohms)")
     ###End Matplotlib Section
 
+    Recorded_Data = pd.DataFrame()
+
     path = File_Path.cget("text")
     final_path = path+"/"+File_Name.get()
 
@@ -150,8 +154,8 @@ def Begin_Measurement():
             Resistances = Multimeter.Scan_Channels(",".join(Channels))
             #At this point, we have a list of resistance values for the devices, in order that they are supplied
             
-            #Awful Awful, code
-            
+            #Awful Awful, code; who fucking wrote this shit? Oh wait, I did
+            #I should never be allowed to write code; I'll have to streamline this later
             for i in range(len(Resistances)):
                 #Updating the Matplotlib 
                 Device_Data[Channels[i]][0].append(Vg/1000)
@@ -168,8 +172,18 @@ def Begin_Measurement():
             writer.writerow(Resistances)
             print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
         
+        #Inserting the gate voltage leftmost column
+        Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
+        for i in range(len(Channels)):
+            Channel = Channels[i]
+            Resistances = Device_Data[Channel][1]
+            Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
+        Recorded_Data.to_excel(final_path+'.xslx')
+            
         DAC.Set_Gate_Voltage(0)
         fig.savefig(final_path+".png")
+
+
     msg.showinfo("Measurement Status", "Measurement Finished")
 
     
