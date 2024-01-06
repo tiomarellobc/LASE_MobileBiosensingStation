@@ -5,7 +5,6 @@ from DMM import *
 from Arduino import *
 import pyvisa
 import csv 
-import random 
 import time
 import os
 from threading import *
@@ -25,15 +24,16 @@ fig = Figure(figsize=(6,6), dpi=100)
 LivePlot = fig.add_subplot(111)
 LivePlot.set_xlabel("Gate Voltage (V)")
 LivePlot.set_ylabel("Resistance (Ohms)")
+LivePlot.set_xlim(0, 1.5)
 
 SweepStatus = BooleanVar()
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
-
 Keithley_2750 = None
 myPort = None
 Multimeter : DMM
 DAC : Arduino
+Aborted = False
 
 _filePath = ""
 _fileName = ""
@@ -87,8 +87,10 @@ def Begin_Measurement():
     global DAC
     global Keithley_2750
     global myPort
+    global Aborted
+
     try: 
-        #Getting the channels that the user wants to scan; note
+        
         Channel_selection = Channel_Selector.get().split(',')
         Channels = Parse_Channels(Channel_Selector.get())
 
@@ -96,102 +98,82 @@ def Begin_Measurement():
         msg.showerror("Channel Input", "Malformed Channel Information. Ensure a range of channels is provided. (Ex. 101:105)")
         return()
 
-    #region DiracPointMeasurement
-    if(SweepStatus.get()): #If we are sweeping the gate voltage
-        start_vG = int(Vg_start_entry.get())
-        end_vG = int(Vg_end_entry.get())
-        delta_vG = int(Vg_delta_entry.get())
-        mode = "a"
-        
-        DAC.Update_Gating(start_vG, end_vG, delta_vG)
-        DAC.Set_Gate_Voltage(0)
-        
-        #Matplotlib Section
-        LivePlot.clear()
-        Plot_data = dict()
-        Device_Data = dict()
-        for Channel in Channels:
-            Plot_data[Channel], = LivePlot.plot([], [], label=f"Device {Channel}")
-            Device_Data[Channel] = ([],[])
-        
-        LivePlot.legend()
-        LivePlot.set_xlim(0, end_vG/1000)
-        ###End Matplotlib Section
-
-        if(os.path.exists(f"Data/RawData/{File_Name.get()}.csv")):
-            mode = "a"
-        else:
-            mode = "w"
-
-        with open(f"Data/RawData/{File_Name.get()}.csv", mode, newline="") as file:
-            writer = csv.writer(file, dialect='excel')
-            #Creating the Header row of the csv
-            Header = ["Gate Voltage (V)"]
-            for channel in Channels:
-                Header.append(channel)
-            writer.writerow(Header)
-            
-            
-
-            #Stepping through each Gate voltage and measuring resistance of the devices
-            for Vg in DAC.Return_Gate_Voltages():
-                window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
-                DAC.Set_Gate_Voltage(Vg)
-                time.sleep(0.5)
-                Resistances = Multimeter.Scan_Channels(",".join(Channels))
-                #At this point, we have a list of resistance values for the devices, in order that they are supplied
-                
-                #Awful Awful, code
-                
-                for i in range(len(Resistances)):
-                    #Updating the Matplotlib 
-                    Device_Data[Channels[i]][0].append(Vg/1000)
-                    Device_Data[Channels[i]][1].append(Resistances[i])
-                    Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
-                    Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-                    LivePlot.set_ylim(0, (max(Resistances))*1.50)
-                    
-                    print(f"Vg Data{Device_Data[Channels[i]]}")
-                
-                fig.canvas.draw()
-                fig.canvas.flush_events()
-
-                #End of Awful, Awful code
-                Resistances.insert(0, Vg/1000)
-                writer.writerow(Resistances)
-                print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
-            
-            
-            
-            DAC.Set_Gate_Voltage(0)
-        msg.showinfo("Measurement Status", "Measurement Finished")
-    #endregion
     
-    #region Scanning Static Resistances
-    else: #If we are not sweewping the gate voltage; just scan the resistnces
-        DAC.Set_Gate_Voltage(0)
+    start_vG = int(Vg_start_entry.get())
+    end_vG = int(Vg_end_entry.get())
+    delta_vG = int(Vg_delta_entry.get())
+    mode = "a"
+    
+    DAC.Update_Gating(start_vG, end_vG, delta_vG)
+    DAC.Set_Gate_Voltage(0)
+    
+    #Matplotlib Section
+    LivePlot.clear()
+    Plot_data = dict()
+    Device_Data = dict()
+    for Channel in Channels:
+        Plot_data[Channel], = LivePlot.plot([], [], label=f"Device {Channel}")
+        Device_Data[Channel] = ([],[])
+    
+    LivePlot.legend()
+    LivePlot.set_xlim(0, end_vG/1000)
+    ###End Matplotlib Section
+
+    path = File_Path.cget()
+    final_path = path+File_Name.get()
+
+    if(os.path.exists(final_path+".csv")):
         mode = "a"
-        if(os.path.exists(f"Data/RawData/{File_Name.get()}.csv")):
-            mode = "a"
-        else:
-            mode = "w"
+    else:
+        mode = "w"
 
-        window.title(f"Scanning Resistances of Channel {Start_Channel} to Channel {End_Channel}")
-        with open(f"Data/RawData/{File_Name.get()}.csv", mode, newline="") as file:
-            writer = csv.writer(file, dialect='excel')
-            Header = []
-            Res_Row = []
-            for channel in range(Start_Channel, End_Channel+1, 1):
-                Header.append(f"Device {channel}")
-            Resistances = Multimeter.Scan_Channels(Start_Channel, End_Channel)
-            print(Resistances)
-            for val in Resistances:
-                Res_Row.append(val)
-            writer.writerow(Header)
-            writer.writerow(Res_Row)
-        msg.showinfo("Measurement Status", "Measurement Finished")
-    #endregion
+    with open(final_path+".csv", mode, newline="") as file:
+        writer = csv.writer(file, dialect='excel')
+        #Creating the Header row of the csv
+        Header = ["Gate Voltage (V)"]
+        for channel in Channels:
+            Header.append(channel)
+        writer.writerow(Header)
+        
+        #Stepping through each Gate voltage and measuring resistance of the devices
+        for Vg in DAC.Return_Gate_Voltages():
+            if(Aborted):
+                msg.showinfo("Aborted Measurement! Ending on next scan!")
+                Aborted = False
+                return()
+            
+            window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
+            DAC.Set_Gate_Voltage(Vg)
+            time.sleep(0.5)
+            Resistances = Multimeter.Scan_Channels(",".join(Channels))
+            #At this point, we have a list of resistance values for the devices, in order that they are supplied
+            
+            #Awful Awful, code
+            
+            for i in range(len(Resistances)):
+                #Updating the Matplotlib 
+                Device_Data[Channels[i]][0].append(Vg/1000)
+                Device_Data[Channels[i]][1].append(Resistances[i])
+                Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
+                Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
+                LivePlot.set_ylim(0, (max(Resistances))*1.50)
+                
+            fig.canvas.draw()
+            fig.canvas.flush_events()
 
+            #End of Awful, Awful code
+            Resistances.insert(0, Vg/1000)
+            writer.writerow(Resistances)
+            print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
+        
+        DAC.Set_Gate_Voltage(0)
+        fig.savefig(final_path+".png")
+    msg.showinfo("Measurement Status", "Measurement Finished")
+
+    
+def Abort_Measurement():
+    global Aborted
+    Aborted = True
 
 #region UI SETUP
 
@@ -208,13 +190,12 @@ Vg_end_entry = Entry()
 Vg_delta = Label(window, text="Gate Voltage Delta (mV)")
 Vg_delta_entry = Entry()
 
-Sweep = Checkbutton(window, text="Sweep Gate Voltage?", onvalue=True, offvalue=False, variable=SweepStatus)
 Set_File_Dialog = Button(window, text="Select File Location", command=Get_File_Path)
 File_Path = Label(window, text="File Path Not Selected", width=20)
 File_Name = Entry(window)
 File_Name.insert(0, "Enter File Name!")
 Measure = Button(window, text="Begin Measurement", command=Begin_Measurement_Thread)
-
+Abort_Measure = Button(window, text="Abort Measurement", command=Abort_Measurement)
 Keithley_Address_Label = Label(window, text="Keithley Address")
 Arduino_Address_Label = Label(window, text="Arduino Address")
 Keithley_Address_Entry = Entry(window)
@@ -238,18 +219,11 @@ Vg_end.grid(row=2, column=2)
 Vg_end_entry.grid(row=2, column=3)
 Vg_delta.grid(row=2, column=4)
 Vg_delta_entry.grid(row=2, column=5)
-Sweep.grid(row=2, column=6)
 Set_File_Dialog.grid(row=3, column=0)
 File_Path.grid(row=3, column=2)
 File_Name.grid(row=3, column=1)
 Measure.grid(row=4,column=0)
-
-
-
-
-x = [1,2,3,4,5]
-y = [2,3,6,10,20]
-z = [1,2,1,2,1]
+Abort_Measure.grid(row=4,column=1)
 
 
 
