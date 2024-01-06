@@ -1,2 +1,2 @@
 
-start cmd /k c:/Users/burchlab/Desktop/BioSensingControlProgram/.venv/Scripts/python.exe c:/Users/burchlab/Desktop/BioSensingControlProgram/tkinter_test.py
+start cmd /k c:/Users/burchlab/Desktop/Biosensing_Station_Software/LASE_MobileBiosensingStation/.venv/Scripts/python.exe c:/Users/burchlab/Desktop/Biosensing_Station_Software/LASE_MobileBiosensingStation/tkinter_test.py
