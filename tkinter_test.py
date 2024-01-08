@@ -105,7 +105,7 @@ def Begin_Measurement():
     end_vG = int(Vg_end_entry.get())
     delta_vG = int(Vg_delta_entry.get())
     mode = "a"
-    
+    excel_mode = "w"
     DAC.Update_Gating(start_vG, end_vG, delta_vG)
     DAC.Set_Gate_Voltage(0)
     
@@ -133,6 +133,11 @@ def Begin_Measurement():
     else:
         mode = "w"
 
+    if(os.path.exists(final_path+".xlsx")):
+        excel_mode = "a"
+        print('previous file found')
+    else:
+        excel_mode = "w"
     with open(final_path+".csv", mode, newline="") as file:
         writer = csv.writer(file, dialect='excel')
         #Creating the Header row of the csv
@@ -178,7 +183,7 @@ def Begin_Measurement():
             Channel = Channels[i]
             Resistances = Device_Data[Channel][1]
             Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
-        Recorded_Data.to_excel(final_path+'.xslx')
+        Recorded_Data.to_excel(final_path+'.xlsx')
             
         DAC.Set_Gate_Voltage(0)
         fig.savefig(final_path+".png")
