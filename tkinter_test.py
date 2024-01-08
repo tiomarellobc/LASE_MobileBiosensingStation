@@ -128,24 +128,12 @@ def Begin_Measurement():
     path = File_Path.cget("text")
     final_path = path+"/"+File_Name.get()
 
-    if(os.path.exists(final_path+".csv")):
-        mode = "a"
-    else:
-        mode = "w"
-
     if(os.path.exists(final_path+".xlsx")):
         excel_mode = "a"
         print('previous file found')
     else:
         excel_mode = "w"
-    with open(final_path+".csv", mode, newline="") as file:
-        writer = csv.writer(file, dialect='excel')
-        #Creating the Header row of the csv
-        Header = ["Gate Voltage (V)"]
-        for channel in Channels:
-            Header.append(channel)
-        writer.writerow(Header)
-        
+
         #Stepping through each Gate voltage and measuring resistance of the devices
         for Vg in DAC.Return_Gate_Voltages():
             if(Aborted):
@@ -174,7 +162,6 @@ def Begin_Measurement():
 
             #End of Awful, Awful code
             Resistances.insert(0, Vg/1000)
-            writer.writerow(Resistances)
             print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
         
         #Inserting the gate voltage leftmost column
