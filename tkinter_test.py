@@ -134,46 +134,53 @@ def Begin_Measurement():
     else:
         excel_mode = "w"
 
-        #Stepping through each Gate voltage and measuring resistance of the devices
-        for Vg in DAC.Return_Gate_Voltages():
-            if(Aborted):
-                msg.showinfo("Aborted Measurement! Ending on next scan!")
-                Aborted = False
-                return()
-            
-            window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
-            DAC.Set_Gate_Voltage(Vg)
-            time.sleep(0.5)
-            Resistances = Multimeter.Scan_Channels(",".join(Channels))
-            #At this point, we have a list of resistance values for the devices, in order that they are supplied
-            
-            #Awful Awful, code; who fucking wrote this shit? Oh wait, I did
-            #I should never be allowed to write code; I'll have to streamline this later
-            for i in range(len(Resistances)):
-                #Updating the Matplotlib 
-                Device_Data[Channels[i]][0].append(Vg/1000)
-                Device_Data[Channels[i]][1].append(Resistances[i])
-                Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
-                Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-                LivePlot.set_ylim(0, (max(Resistances))*1.50)
-                
-            fig.canvas.draw()
-            fig.canvas.flush_events()
-
-            #End of Awful, Awful code
-            Resistances.insert(0, Vg/1000)
-            print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
+    #Stepping through each Gate voltage and measuring resistance of the devices
+    for Vg in DAC.Return_Gate_Voltages():
+        if(Aborted):
+            msg.showinfo("Aborted Measurement! Ending on next scan!")
+            Aborted = False
+            return()
         
-        #Inserting the gate voltage leftmost column
-        Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
-        for i in range(len(Channels)):
-            Channel = Channels[i]
-            Resistances = Device_Data[Channel][1]
-            Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
-        Recorded_Data.to_excel(final_path+'.xlsx')
+        window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
+        DAC.Set_Gate_Voltage(Vg)
+        time.sleep(0.5)
+        Resistances = Multimeter.Scan_Channels(",".join(Channels))
+        #At this point, we have a list of resistance values for the devices, in order that they are supplied
+        
+        #Awful Awful, code; who fucking wrote this shit? Oh wait, I did
+        #I should never be allowed to write code; I'll have to streamline this later
+        for i in range(len(Resistances)):
+            #Updating the Matplotlib 
+            Device_Data[Channels[i]][0].append(Vg/1000)
+            Device_Data[Channels[i]][1].append(Resistances[i])
+            Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
+            Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
+            LivePlot.set_ylim(0, (max(Resistances))*1.50)
             
-        DAC.Set_Gate_Voltage(0)
-        fig.savefig(final_path+".png")
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+
+        #End of Awful, Awful code
+        Resistances.insert(0, Vg/1000)
+        print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
+    
+    #Inserting the gate voltage leftmost column
+    Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
+    for i in range(len(Channels)):
+        Channel = Channels[i]
+        Resistances = Device_Data[Channel][1]
+        Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
+
+    if(excel_mode == "a"):
+        existing_file = pd.read_excel(final_path+".xlsx")
+        existing_file.insert(len(existing_file.columns), "","")
+        Final_Output = pd.concat([existing_file, Recorded_Data], axis=1)
+        Final_Output.to_excel(final_path+'.xlsx', index=False)
+    else:
+        Recorded_Data.to_excel(final_path+'.xlsx', index=False)
+        
+    DAC.Set_Gate_Voltage(0)
+    fig.savefig(final_path+".png")
 
 
     msg.showinfo("Measurement Status", "Measurement Finished")
