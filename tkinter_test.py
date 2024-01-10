@@ -171,6 +171,21 @@ def Begin_Measurement():
         Resistances = Device_Data[Channel][1]
         Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
 
+    #Section places a row at the bottom of the dataframe, including the gate voltages at which the dirac point is observed
+    #At this point, we have a dataframe loaded with a gatevoltage column, follwoed by columns of the ressitances values of the devices
+    Max_VG = []
+    for column_name, column_series in Recorded_Data.items():
+        if(column_name == 'Gate Voltages'):
+            Max_VG.append('Dirac Point Vg')
+        else:
+            Max_Resistance = column_series.max()
+            index_of_max = Recorded_Data[Recorded_Data[column_name] == Max_Resistance].index.tolist()[0] #Dangerous, assumes that there is only one peak in the data, which may not be true
+            Vg_at_peak = Recorded_Data['Gate Voltages'].iloc[index_of_max].to_list()
+            Max_VG.append(Vg_at_peak[0])
+    Recorded_Data.loc[len(Recorded_Data.index)] = Max_VG
+
+
+
     if(excel_mode == "a"):
         existing_file = pd.read_excel(final_path+".xlsx")
         existing_file.insert(len(existing_file.columns), "","")
