@@ -164,10 +164,13 @@ def Begin_Measurement():
         Resistances.insert(0, Vg/1000)
         print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
     
+    DAC.Set_Gate_Voltage(0)
+
     #Inserting the gate voltage leftmost column
     Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
+    #Placing each column of resistance values, for each device, into the dataframe
     for i in range(len(Channels)):
-        Channel = Channels[i]
+        Channel = Channels[i]+Channel_header_suffix_entry.get() #Adds the typed suffix 
         Resistances = Device_Data[Channel][1]
         Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
 
@@ -194,8 +197,8 @@ def Begin_Measurement():
     else:
         Recorded_Data.to_excel(final_path+'.xlsx', index=False)
         
-    DAC.Set_Gate_Voltage(0)
-    fig.savefig(final_path+".png")
+    
+    fig.savefig(final_path+'_Images/' + File_Name.get() + Channel_header_suffix_entry.get() + ".png")
 
 
     msg.showinfo("Measurement Status", "Measurement Finished")
@@ -212,6 +215,8 @@ window.title("HARDWARE NOT CONNECTED")
 
 channel_label = Label(window, text="Channel Select 101:120")
 Channel_Selector = Entry(window)
+Channel_header_suffix_label = Label(window, text="Device Header Suffix")
+Channel_header_suffix_entry = Entry(window)
 
 Vg_start = Label(window, text="Gate Voltage Start (mV)")
 Vg_start_entry = Entry()
@@ -242,6 +247,8 @@ Open_Ports_Button.grid(row=0, column=4)
 
 channel_label.grid(row=1,column=0)
 Channel_Selector.grid(row=1, column = 1)
+Channel_header_suffix_label.grid(row=1, column=2)
+Channel_header_suffix_entry.grid(row=1, column=3)
 
 Vg_start.grid(row=2, column=0)
 Vg_start_entry.grid(row=2, column=1)
