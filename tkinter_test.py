@@ -13,9 +13,6 @@ import pandas as pd
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-
-
 window = Tk()
 window.resizable(False,False)
 secondary_window = Toplevel()
@@ -137,7 +134,7 @@ def Begin_Measurement():
     #Stepping through each Gate voltage and measuring resistance of the devices
     for Vg in DAC.Return_Gate_Voltages():
         if(Aborted):
-            msg.showinfo("Aborted Measurement! Ending on next scan!")
+            msg.showinfo("Aborted Measurement!", "Ending on next scan!")
             Aborted = False
             return()
         
@@ -170,9 +167,10 @@ def Begin_Measurement():
     Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
     #Placing each column of resistance values, for each device, into the dataframe
     for i in range(len(Channels)):
-        Channel = Channels[i]+Channel_header_suffix_entry.get() #Adds the typed suffix 
+        Channel_Header = Channels[i]+Channel_header_suffix_entry.get() #Adds the typed suffix
+        Channel = Channels[i]
         Resistances = Device_Data[Channel][1]
-        Recorded_Data.insert(len(Recorded_Data.columns), Channel, Resistances)
+        Recorded_Data.insert(len(Recorded_Data.columns), Channel_Header, Resistances)
 
     #Section places a row at the bottom of the dataframe, including the gate voltages at which the dirac point is observed
     #At this point, we have a dataframe loaded with a gatevoltage column, follwoed by columns of the ressitances values of the devices
@@ -183,8 +181,8 @@ def Begin_Measurement():
         else:
             Max_Resistance = column_series.max()
             index_of_max = Recorded_Data[Recorded_Data[column_name] == Max_Resistance].index.tolist()[0] #Dangerous, assumes that there is only one peak in the data, which may not be true
-            Vg_at_peak = Recorded_Data['Gate Voltages'].iloc[index_of_max].to_list()
-            Max_VG.append(Vg_at_peak[0])
+            Vg_at_peak = Recorded_Data['Gate Voltages'].iloc[index_of_max].tolist()
+            Max_VG.append(Vg_at_peak)
     Recorded_Data.loc[len(Recorded_Data.index)] = Max_VG
 
 
@@ -198,7 +196,7 @@ def Begin_Measurement():
         Recorded_Data.to_excel(final_path+'.xlsx', index=False)
         
     
-    fig.savefig(final_path+'_Images/' + File_Name.get() + Channel_header_suffix_entry.get() + ".png")
+    fig.savefig(final_path + File_Name.get() + Channel_header_suffix_entry.get() + ".png")
 
 
     msg.showinfo("Measurement Status", "Measurement Finished")
