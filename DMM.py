@@ -22,6 +22,7 @@ class DMM:
     def Scan_Channels(self, channel_list):
         self.insr.write(f"FUNC 'RES', (@{channel_list})\n") #Sets selected channel range to measure resistance
         self.insr.write(f"res:aver:stat off\n") #turn off filter
+        self.insr.write(f"res:rang 2000, (@{channel_list})\n") #Sets the range by suppling an expected resistance value, in this case, 2000 Ohms
         #self.insr.write(f"res:rang:auto OFF, (@{start}:{end})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"res:rang 1e4, (@{start}:{end})\n") #Sets selected channel range to measure resistance
         self.insr.write(f"syst:azer:stat off")
