@@ -55,7 +55,7 @@ def Open_Ports():
         DAC = Arduino(myPort, 0, 1500, 5)
         Multimeter = DMM(Keithley_2750)
         Multimeter.Reset()
-        time.sleep(2)
+        time.sleep(1)
         msg.showinfo("Port Status", f"Connection Successful : {Multimeter.Get_ID()} + {myPort.name}")
         window.title("Hardware Connected")
     except Exception:
