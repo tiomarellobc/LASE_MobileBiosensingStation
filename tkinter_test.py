@@ -140,7 +140,7 @@ def Begin_Measurement():
         
         window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
         DAC.Set_Gate_Voltage(Vg)
-        time.sleep(0.5)
+        time.sleep(1.5)
         Resistances = Multimeter.Scan_Channels(",".join(Channels))
         #At this point, we have a list of resistance values for the devices, in order that they are supplied
         
