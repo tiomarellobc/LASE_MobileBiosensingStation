@@ -22,14 +22,14 @@ class DMM:
     def Scan_Channels(self, channel_list):
         self.insr.write(f"FUNC 'RES', (@{channel_list})\n") #Sets selected channel range to measure resistance
         #Filter section
-        self.insr.write("res:aver:tcon rep\n")
-        self.insr.write(f"res:aver:tcon coun 10, (@{channel_list})\n")
-        self.insr.write(f"res:aver:stat on, (@{channel_list})\n") #turn off filter
+        #self.insr.write("res:aver:tcon rep\n")
+        #self.insr.write(f"res:aver:tcon coun 10, (@{channel_list})\n")
+        #self.insr.write(f"res:aver:stat on, (@{channel_list})\n") #turn off filter
         #self.insr.write(f"res:rang 2000, (@{channel_list})\n") #Sets the range by suppling an expected resistance value, in this case, 2000 Ohms
-        #self.insr.write(f"res:rang:auto on, (@{channel_list})\n") #Sets selected channel range to measure resistance
+        self.insr.write(f"res:rang:auto on, (@{channel_list})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"res:rang 1e4, (@{start}:{end})\n") #Sets selected channel range to measure resistance
-        self.insr.write(f"syst:azer:stat off\n")
-        self.insr.write(f"disp:enab off") #Turn off display
+        #self.insr.write(f"syst:azer:stat off\n")
+        #self.insr.write(f"disp:enab off") #Turn off display
         self.insr.write(f"res:nplc 1, (@{channel_list})\n") #Sets integration time to 0.01 => Measure FAST
         self.insr.write(f"rout:scan (@{channel_list})\n") #Sets which chanenls to measure
         self.insr.write('trac:cle\n') #Clears the internal buffer
