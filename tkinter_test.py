@@ -97,6 +97,10 @@ def Begin_Measurement():
         msg.showerror("Channel Input", "Malformed Channel Information. Ensure a range of channels is provided. (Ex. 101:105)")
         return()
 
+    if(File_Path.cget("text") == "File Path Not Selected"):
+        msg.showerror("File Path not selected. Please select, and try again.")
+        return()
+
     
     start_vG = int(Vg_start_entry.get())
     end_vG = int(Vg_end_entry.get())
