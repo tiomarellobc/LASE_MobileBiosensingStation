@@ -19,5 +19,9 @@ class Arduino:
     def Return_Gate_Voltages(self):
         Voltages = range(self.vg_start, self.vg_end+self.Vg_delta, self.Vg_delta)
         return(Voltages)
+    def Return_Gate_Voltages_SweepBack(self):
+        Voltages_Forward = range(self.vg_start, self.vg_end, self.Vg_delta)
+        Voltages_Back = range(self.vg_end, self.vg_start, self.Vg_delta)
+        return(Voltages_Forward+Voltages_Back)
     def Set_Gate_Voltage(self, Vg_mV):
         self.serial_Device.write(f"V{int(Vg_mV):04d}".encode())

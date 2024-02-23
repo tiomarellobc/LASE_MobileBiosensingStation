@@ -107,8 +107,15 @@ def Begin_Measurement():
     delta_vG = int(Vg_delta_entry.get())
     mode = "a"
     excel_mode = "w"
+
     DAC.Update_Gating(start_vG, end_vG, delta_vG)
     DAC.Set_Gate_Voltage(0)
+
+    if(Vg_SweepBack.getvar() == True):
+        GateVoltages = DAC.Return_Gate_Voltages_SweepBack()
+    else:
+        GateVoltages = DAC.Return_Gate_Voltages()
+    
     
     #Matplotlib Section
     LivePlot.clear()
@@ -136,7 +143,7 @@ def Begin_Measurement():
         excel_mode = "w"
 
     #Stepping through each Gate voltage and measuring resistance of the devices
-    for Vg in DAC.Return_Gate_Voltages():
+    for Vg in GateVoltages:
         if(Aborted):
             msg.showinfo("Aborted Measurement!", "Ending on next scan!")
             Aborted = False
@@ -226,6 +233,8 @@ Vg_end = Label(window, text="Gate Voltage End (mV)")
 Vg_end_entry = Entry()
 Vg_delta = Label(window, text="Gate Voltage Delta (mV)")
 Vg_delta_entry = Entry()
+Vg_SweepBack = Checkbutton()
+Vg_SweepBack_Label = Label(window, text="SweepBack?")
 
 Set_File_Dialog = Button(window, text="Select File Location", command=Get_File_Path)
 File_Path = Label(window, text="File Path Not Selected", width=20)
@@ -258,6 +267,8 @@ Vg_end.grid(row=2, column=2)
 Vg_end_entry.grid(row=2, column=3)
 Vg_delta.grid(row=2, column=4)
 Vg_delta_entry.grid(row=2, column=5)
+Vg_SweepBack_Label.grid(row=2,column=6)
+Vg_SweepBack.grid(row=2, column=7)
 Set_File_Dialog.grid(row=3, column=0)
 File_Path.grid(row=3, column=2)
 File_Name.grid(row=3, column=1)
