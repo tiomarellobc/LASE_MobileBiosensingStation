@@ -171,6 +171,8 @@ def Begin_Measurement():
         #End of Awful, Awful code
         Resistances.insert(0, Vg/1000)
         print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
+        if(Vg_StepUp.getvar() == True):
+            msg.showinfo("Done with this step; change resistance")
     
     DAC.Set_Gate_Voltage(0)
 
@@ -235,6 +237,8 @@ Vg_delta = Label(window, text="Gate Voltage Delta (mV)")
 Vg_delta_entry = Entry()
 Vg_SweepBack = Checkbutton()
 Vg_SweepBack_Label = Label(window, text="SweepBack?")
+Vg_StepUp = Checkbutton()
+Vg_StepUp_Label = Label(window, text="Pause Each Delta?")
 
 Set_File_Dialog = Button(window, text="Select File Location", command=Get_File_Path)
 File_Path = Label(window, text="File Path Not Selected", width=20)
@@ -269,6 +273,8 @@ Vg_delta.grid(row=2, column=4)
 Vg_delta_entry.grid(row=2, column=5)
 Vg_SweepBack_Label.grid(row=2,column=6)
 Vg_SweepBack.grid(row=2, column=7)
+Vg_StepUp.grid(row=2, column=9)
+Vg_StepUp_Label.grid(row=2, column=8)
 Set_File_Dialog.grid(row=3, column=0)
 File_Path.grid(row=3, column=2)
 File_Name.grid(row=3, column=1)
