@@ -93,7 +93,8 @@ def Begin_Measurement():
         Channel_selection = Channel_Selector.get().split(',')
         Channels = Parse_Channels(Channel_Selector.get())
 
-    except Exception:
+    except ValueError:
+        msg.showinfo()
         msg.showerror("Channel Input", "Malformed Channel Information. Ensure a range of channels is provided. (Ex. 101:105)")
         return()
 
@@ -151,7 +152,7 @@ def Begin_Measurement():
         
         window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
         DAC.Set_Gate_Voltage(Vg)
-        time.sleep(2)
+        time.sleep(1)
         Resistances = Multimeter.Scan_Channels(",".join(Channels))
         #At this point, we have a list of resistance values for the devices, in order that they are supplied
         
@@ -163,7 +164,7 @@ def Begin_Measurement():
             Device_Data[Channels[i]][1].append(Resistances[i])
             Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
             Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-            if(max(Resistances)*1.50 > LivePlot.get_ylim[1]):
+            if(max(Resistances)*1.50 > LivePlot.get_ylim[1]): #Checks if the resistances coming in this time requires a rescaling of the liveplot
                 LivePlot.set_ylim(0, (max(Resistances))*1.50)
             
         fig.canvas.draw()
