@@ -163,7 +163,8 @@ def Begin_Measurement():
             Device_Data[Channels[i]][1].append(Resistances[i])
             Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
             Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-            LivePlot.set_ylim(0, (max(Resistances))*1.50)
+            if(max(Resistances)*1.50 > LivePlot.get_ylim[1]):
+                LivePlot.set_ylim(0, (max(Resistances))*1.50)
             
         fig.canvas.draw()
         fig.canvas.flush_events()
