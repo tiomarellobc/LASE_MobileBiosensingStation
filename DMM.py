@@ -25,8 +25,9 @@ class DMM:
         #self.insr.write("res:aver:tcon rep\n")
         #self.insr.write(f"res:aver:tcon coun 10, (@{channel_list})\n")
         #self.insr.write(f"res:aver:stat on, (@{channel_list})\n") #turn off filter
-        #self.insr.write(f"res:rang 2000, (@{channel_list})\n") #Sets the range by suppling an expected resistance value, in this case, 2000 Ohms
-        self.insr.write(f"res:rang:auto on, (@{channel_list})\n") #Sets selected channel range to measure resistance
+        #There's some weridness here; I suspect that some of our jump issuess may be due to ranging issues
+        self.insr.write(f"res:rang 2000, (@{channel_list})\n") #Sets the range by suppling an expected resistance value, in this case, 2000 Ohms
+        #self.insr.write(f"res:rang:auto on, (@{channel_list})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"res:rang 1e4, (@{start}:{end})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"syst:azer:stat off\n")
         #self.insr.write(f"disp:enab off") #Turn off display
