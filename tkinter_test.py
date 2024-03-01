@@ -111,7 +111,7 @@ def Begin_Measurement():
     DAC.Update_Gating(start_vG, end_vG, delta_vG)
     DAC.Set_Gate_Voltage(0)
 
-    if(Vg_SweepBack.getvar() == True):
+    if(Vg_SweepBack_Status.get()):
         GateVoltages = DAC.Return_Gate_Voltages_SweepBack()
     else:
         GateVoltages = DAC.Return_Gate_Voltages()
@@ -235,7 +235,8 @@ Vg_end = Label(window, text="Gate Voltage End (mV)")
 Vg_end_entry = Entry()
 Vg_delta = Label(window, text="Gate Voltage Delta (mV)")
 Vg_delta_entry = Entry()
-Vg_SweepBack = Checkbutton()
+Vg_SweepBack_Status = BooleanVar()
+Vg_SweepBack = Checkbutton(variable=Vg_SweepBack_Status)
 Vg_SweepBack_Label = Label(window, text="SweepBack?")
 Vg_StepUp = Checkbutton()
 Vg_StepUp_Label = Label(window, text="Pause Each Delta?")
