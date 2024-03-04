@@ -36,7 +36,7 @@ class DMM:
         #self.insr.write(f"res:rang 1e4, (@{start}:{end})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"syst:azer:stat off\n")
         #self.insr.write(f"disp:enab off") #Turn off display
-        self.insr.write(f"res:nplc 1, (@{channel_list})\n") #Sets integration time to 0.01 => Measure FAST
+        self.insr.write(f"res:nplc 5, (@{channel_list})\n") #Sets integration time to 0.01 => Measure FAST
         self.insr.write(f"rout:scan (@{channel_list})\n") #Sets which chanenls to measure
         self.insr.write('trac:cle\n') #Clears the internal buffer
         self.insr.write('init:cont off\n') #Disables continous intiation

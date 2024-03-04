@@ -62,6 +62,7 @@ def Open_Ports():
         msg.showerror("Port Status", f"Connection Unsuccessful. Please ensure devices are connected with proper port names. Devices available are {rm.list_resources()}")
     
 #Takes in user channel input and spits out proeprly formatted string
+#Example: 101, 103, 104:106 ==> ['101','103','104','105','106']
 def Parse_Channels(input):
     All_Channels = []
     for Top_Channel in input.split(','):
@@ -88,8 +89,7 @@ def Begin_Measurement():
     global myPort
     global Aborted
 
-    try: 
-        
+    try:
         Channel_selection = Channel_Selector.get().split(',')
         Channels = Parse_Channels(Channel_Selector.get())
 
@@ -102,7 +102,7 @@ def Begin_Measurement():
         msg.showerror("File Path not selected. Please select, and try again.")
         return()
 
-    
+
     start_vG = int(Vg_start_entry.get())
     end_vG = int(Vg_end_entry.get())
     delta_vG = int(Vg_delta_entry.get())
