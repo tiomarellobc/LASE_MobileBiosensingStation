@@ -1,9 +1,13 @@
 import pyvisa
 
 class DMM:
+    
     def __init__(self, VisaInstrument):
         self.insr = VisaInstrument
+        self.range = 10000
     
+    def Set_Range(self, new_range):
+        self.range = new_range
     def Get_ID(self):
         Id = self.insr.query("*IDN?\n")
         return(Id)
@@ -19,6 +23,7 @@ class DMM:
     def Write_Message_To_Display(self, Message):
         self.insr.write(f"disp:text:data '{Message}'\n")
         self.insr.write("disp:text:data on\n")
+        self.insr.write('trac:cle\n') #Clears the internal buffer
     def Scan_Channels(self, channel_list):
         self.insr.write(f"FUNC 'RES', (@{channel_list})\n") #Sets selected channel range to measure resistance
         #Filter section
@@ -26,7 +31,7 @@ class DMM:
         #self.insr.write(f"res:aver:tcon coun 10, (@{channel_list})\n")
         #self.insr.write(f"res:aver:stat on, (@{channel_list})\n") #turn off filter
         #There's some weridness here; I suspect that some of our jump issuess may be due to ranging issues
-        self.insr.write(f"res:rang 2000, (@{channel_list})\n") #Sets the range by suppling an expected resistance value, in this case, 2000 Ohms
+        self.insr.write(f"res:rang {self.range}, (@{channel_list})\n") #Sets the range by suppling an expected resistance value, in this case, 2000 Ohms
         #self.insr.write(f"res:rang:auto on, (@{channel_list})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"res:rang 1e4, (@{start}:{end})\n") #Sets selected channel range to measure resistance
         #self.insr.write(f"syst:azer:stat off\n")

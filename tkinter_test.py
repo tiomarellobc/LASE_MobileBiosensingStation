@@ -108,7 +108,7 @@ def Begin_Measurement():
     delta_vG = int(Vg_delta_entry.get())
     mode = "a"
     excel_mode = "w"
-
+    Multimeter.Set_Range(Keithley_Range_Entry.get())
     DAC.Update_Gating(start_vG, end_vG, delta_vG)
     DAC.Set_Gate_Voltage(0)
 
@@ -253,6 +253,9 @@ Keithley_Address_Label = Label(window, text="Keithley Address")
 Arduino_Address_Label = Label(window, text="Arduino Address")
 Keithley_Address_Entry = Entry(window)
 Keithley_Address_Entry.insert(0,"ASRL4::INSTR")
+Keithley_Range_Entry = Entry(window)
+Keithley_Range_Label = Label(window, text="Measurement Range:")
+Keithley_Range_Entry.insert(0, "10000")
 Arduino_Address_Entry = Entry(window)
 Arduino_Address_Entry.insert(0,"COM3")
 Open_Ports_Button = Button(window, text="Open Ports", command=Open_Ports)
@@ -262,6 +265,8 @@ Keithley_Address_Entry.grid(row=0, column=1)
 Arduino_Address_Label.grid(row=0, column=2)
 Arduino_Address_Entry.grid(row=0, column=3)
 Open_Ports_Button.grid(row=0, column=4)
+Keithley_Range_Label.grid(row=0, column=5)
+Keithley_Range_Entry.grid(row=0, column=6)
 
 channel_label.grid(row=1,column=0)
 Channel_Selector.grid(row=1, column = 1)
