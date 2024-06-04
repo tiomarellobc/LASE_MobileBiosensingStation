@@ -18,13 +18,13 @@ window.resizable(False,False)
 secondary_window = Toplevel()
 secondary_window.title("Live Plotting")
 
+
 fig = Figure(figsize=(7,7), dpi=100)
 LivePlot = fig.add_subplot(111)
 LivePlot.set_xlabel("Gate Voltage (V)")
 LivePlot.set_ylabel("Resistance (Ohms)")
 LivePlot.set_xlim(0, 1.5)
 
-SweepStatus = BooleanVar()
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
 Keithley_2750 = None
@@ -101,7 +101,7 @@ def Begin_Measurement():
     if(File_Path.cget("text") == "File Path Not Selected"):
         msg.showerror("File Path not selected. Please select, and try again.")
         return()
-
+    
 
     start_vG = int(Vg_start_entry.get())
     end_vG = int(Vg_end_entry.get())
@@ -112,13 +112,13 @@ def Begin_Measurement():
     DAC.Update_Gating(start_vG, end_vG, delta_vG)
     DAC.Set_Gate_Voltage(0)
 
-    if(Vg_SweepBack_Status.get()):
+    if(Vg_SweepBack_Status.get() == 1):
         GateVoltages = DAC.Return_Gate_Voltages_SweepBack()
     else:
         GateVoltages = DAC.Return_Gate_Voltages()
     
     
-    #Matplotlib Section
+###Matplotlib Section
     LivePlot.clear()
     Plot_data = dict()
     Device_Data = dict()
@@ -130,7 +130,7 @@ def Begin_Measurement():
     LivePlot.set_xlim(0, end_vG/1000)
     LivePlot.set_xlabel("Gate Voltage (V)")
     LivePlot.set_ylabel("Resistance (Ohms)")
-    ###End Matplotlib Section
+###End Matplotlib Section
 
     Recorded_Data = pd.DataFrame()
 
@@ -143,6 +143,8 @@ def Begin_Measurement():
     else:
         excel_mode = "w"
 
+###Physical Chip Measurement Section 
+    
     #Stepping through each Gate voltage and measuring resistance of the devices
     for Vg in GateVoltages:
         if(Aborted):
@@ -173,8 +175,16 @@ def Begin_Measurement():
         #End of Awful, Awful code
         Resistances.insert(0, Vg/1000)
         print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
+        if(Vg_StepUp_Status.get() == 1):
+            msg.showinfo("Done with this step; change resistance")
     
     DAC.Set_Gate_Voltage(0)
+
+###Physical Chip Measurement Section End
+
+
+
+###Packaging into Dataframe Section
 
     #Inserting the gate voltage leftmost column
     Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
@@ -187,6 +197,7 @@ def Begin_Measurement():
 
     #Section places a row at the bottom of the dataframe, including the gate voltages at which the dirac point is observed
     #At this point, we have a dataframe loaded with a gatevoltage column, follwoed by columns of the ressitances values of the devices
+    
     Max_VG = []
     for column_name, column_series in Recorded_Data.items():
         if(column_name == 'Gate Voltages'):
@@ -198,7 +209,9 @@ def Begin_Measurement():
             Max_VG.append(Vg_at_peak)
     Recorded_Data.loc[len(Recorded_Data.index)] = Max_VG
 
+###Packaging into Dataframe Section END
 
+###File Export Section
 
     if(excel_mode == "a"):
         existing_file = pd.read_excel(final_path+".xlsx")
@@ -214,7 +227,8 @@ def Begin_Measurement():
 
     msg.showinfo("Measurement Status", "Measurement Finished")
 
-    
+#File Export Section END
+
 def Abort_Measurement():
     global Aborted
     Aborted = True
@@ -235,10 +249,11 @@ Vg_end = Label(window, text="Gate Voltage End (mV)")
 Vg_end_entry = Entry()
 Vg_delta = Label(window, text="Gate Voltage Delta (mV)")
 Vg_delta_entry = Entry()
-Vg_SweepBack_Status = BooleanVar()
+Vg_SweepBack_Status = IntVar()
 Vg_SweepBack = Checkbutton(variable=Vg_SweepBack_Status)
 Vg_SweepBack_Label = Label(window, text="SweepBack?")
-Vg_StepUp = Checkbutton()
+Vg_StepUp_Status = IntVar()
+Vg_StepUp = Checkbutton(variable=Vg_StepUp_Status)
 Vg_StepUp_Label = Label(window, text="Pause Each Delta?")
 
 Set_File_Dialog = Button(window, text="Select File Location", command=Get_File_Path)
@@ -286,6 +301,7 @@ File_Path.grid(row=3, column=2)
 File_Name.grid(row=3, column=1)
 Measure.grid(row=4,column=0)
 Abort_Measure.grid(row=4,column=1)
+
 
 
 
