@@ -17,7 +17,8 @@ window = Tk()
 window.resizable(False,False)
 secondary_window = Toplevel()
 secondary_window.title("Live Plotting")
-
+dirac_window = Toplevel()
+dirac_window.title("Dirac Points")
 
 fig = Figure(figsize=(7,7), dpi=100)
 LivePlot = fig.add_subplot(111)
@@ -122,9 +123,13 @@ def Begin_Measurement():
     LivePlot.clear()
     Plot_data = dict()
     Device_Data = dict()
+    Data_Run = dict()
     for Channel in Channels:
         Plot_data[Channel], = LivePlot.plot([], [], label=f"Device {Channel}")
         Device_Data[Channel] = ([],[])
+        Data_Run[Channel] = []
+    Data_Run["Gate Voltage"] = []
+
     
     LivePlot.legend()
     LivePlot.set_xlim(0, end_vG/1000)
@@ -160,15 +165,21 @@ def Begin_Measurement():
         
         #Awful Awful, code; who fucking wrote this shit? Oh wait, I did
         #I should never be allowed to write code; I'll have to streamline this later
+        Data_Run["Gate Voltage"].append(Vg/1000)
         for i in range(len(Resistances)):
             #Updating the Matplotlib 
-            Device_Data[Channels[i]][0].append(Vg/1000)
-            Device_Data[Channels[i]][1].append(Resistances[i])
-            Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
-            Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-            if(max(Resistances)*1.50 > LivePlot.get_ylim()[1]): #Checks if the resistances coming in this time requires a rescaling of the liveplot
+            Channel_Number = Channels[i]
+            Data_Run[Channel_Number].append(Resistances[i])
+            Plot_data[Channel_Number].set_xdata(Data_Run["Gate Voltage"])
+            Plot_data[Channel_Number].set_ydata(Data_Run[Channel_Number])
+
+            #Device_Data[Channels[i]][0].append(Vg/1000)
+            #Device_Data[Channels[i]][1].append(Resistances[i])
+            #Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
+            #Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
+            if(max(Resistances)*1.50 > LivePlot.get_ylim()[1] and max(Resistances) < 200000 ): #Checks if the resistances coming in this time requires a rescaling of the liveplot; it does not rescale if the device is clearly dead (Resistance > 200000 ohms)
                 LivePlot.set_ylim(0, (max(Resistances))*1.50)
-            
+        
         fig.canvas.draw()
         fig.canvas.flush_events()
 
@@ -185,29 +196,20 @@ def Begin_Measurement():
 
 
 ###Packaging into Dataframe Section
-
+    #At this point, we have a dictionary with 1 column of gate voltages, and rest of columns with the resistnace values
+    Dirac_Message = ""
+    Formated_Data = dict()
+    Formated_Data["Gate Voltage (V)"] = Data_Run["Gate Voltage"]
+    for keyC in Data_Run.keys():
+        if(keyC != "Gate Voltage"):
+            Formated_Data[keyC+Channel_header_suffix_entry.get()] = Data_Run[keyC]
+            
+            #I'll probably hate myself for this 1 liner, but fuck it, we ball
+            Dirac_Point = Data_Run["Gate Voltage"][Data_Run[keyC].index(max(Data_Run[keyC]))]
+            Dirac_Message = Dirac_Message + f"{keyC}:{Dirac_Point}|"
+    dirac_textbox.insert(END, Dirac_Message+"\n")
     #Inserting the gate voltage leftmost column
-    Recorded_Data.insert(0, "Gate Voltages", Device_Data[Channels[0]][0])
-    #Placing each column of resistance values, for each device, into the dataframe
-    for i in range(len(Channels)):
-        Channel_Header = Channels[i]+Channel_header_suffix_entry.get() #Adds the typed suffix
-        Channel = Channels[i]
-        Resistances = Device_Data[Channel][1]
-        Recorded_Data.insert(len(Recorded_Data.columns), Channel_Header, Resistances)
-
-    #Section places a row at the bottom of the dataframe, including the gate voltages at which the dirac point is observed
-    #At this point, we have a dataframe loaded with a gatevoltage column, follwoed by columns of the ressitances values of the devices
-    
-    Max_VG = []
-    for column_name, column_series in Recorded_Data.items():
-        if(column_name == 'Gate Voltages'):
-            Max_VG.append('Dirac Point Vg')
-        else:
-            Max_Resistance = column_series.max()
-            index_of_max = Recorded_Data[Recorded_Data[column_name] == Max_Resistance].index.tolist()[0] #Dangerous, assumes that there is only one peak in the data, which may not be true
-            Vg_at_peak = Recorded_Data['Gate Voltages'].iloc[index_of_max].tolist()
-            Max_VG.append(Vg_at_peak)
-    Recorded_Data.loc[len(Recorded_Data.index)] = Max_VG
+    Recorded_Data = pd.DataFrame.from_dict(Formated_Data)
 
 ###Packaging into Dataframe Section END
 
@@ -302,7 +304,8 @@ File_Name.grid(row=3, column=1)
 Measure.grid(row=4,column=0)
 Abort_Measure.grid(row=4,column=1)
 
-
+dirac_textbox = Text(master=dirac_window)
+dirac_textbox.pack()
 
 
 canvas = FigureCanvasTkAgg(fig, master=secondary_window)
