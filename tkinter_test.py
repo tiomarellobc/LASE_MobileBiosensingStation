@@ -152,7 +152,7 @@ def Begin_Measurement():
         
         window.title(f"Measuring Dirac Points | Current Gate Voltage:{Vg}")
         DAC.Set_Gate_Voltage(Vg)
-        time.sleep(1)
+        time.sleep(3)
         Resistances = Multimeter.Scan_Channels(",".join(Channels))
         #At this point, we have a list of resistance values for the devices, in order that they are supplied
         
@@ -164,7 +164,7 @@ def Begin_Measurement():
             Device_Data[Channels[i]][1].append(Resistances[i])
             Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
             Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-            if(max(Resistances)*1.50 > LivePlot.get_ylim[1]): #Checks if the resistances coming in this time requires a rescaling of the liveplot
+            if(max(Resistances)*1.50 > LivePlot.get_ylim()[1]): #Checks if the resistances coming in this time requires a rescaling of the liveplot
                 LivePlot.set_ylim(0, (max(Resistances))*1.50)
             
         fig.canvas.draw()
@@ -173,8 +173,6 @@ def Begin_Measurement():
         #End of Awful, Awful code
         Resistances.insert(0, Vg/1000)
         print(f"Current Gate Voltage: {Vg} Resistances: {Resistances}")
-        if(Vg_StepUp.getvar() == True):
-            msg.showinfo("Done with this step; change resistance")
     
     DAC.Set_Gate_Voltage(0)
 
