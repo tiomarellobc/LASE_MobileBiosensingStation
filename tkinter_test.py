@@ -177,8 +177,17 @@ def Begin_Measurement():
             #Device_Data[Channels[i]][1].append(Resistances[i])
             #Plot_data[Channels[i]].set_xdata(Device_Data[Channels[i]][0])
             #Plot_data[Channels[i]].set_ydata(Device_Data[Channels[i]][1])
-            if(max(Resistances)*1.50 > LivePlot.get_ylim()[1] and max(Resistances) < 200000 ): #Checks if the resistances coming in this time requires a rescaling of the liveplot; it does not rescale if the device is clearly dead (Resistance > 200000 ohms)
-                LivePlot.set_ylim(0, (max(Resistances))*1.50)
+            if(max(Resistances)*1.50 > LivePlot.get_ylim()[1]): #Checks if the resistances coming in this time requires a rescaling of the liveplot; it does not rescale if the device is clearly dead (Resistance > 200000 ohms)
+                if(max(Resistances) > 200000):
+                    upper_limit = 100000
+                    last = 0
+                    for res in Resistances:
+                        if res < upper_limit and res > last:
+                            last = res
+    
+                    LivePlot.set_ylim(0, last*1.50)
+                else:
+                    LivePlot.set_ylim(0, max(Resistances)*1.50)
         
         fig.canvas.draw()
         fig.canvas.flush_events()
@@ -206,7 +215,7 @@ def Begin_Measurement():
             
             #I'll probably hate myself for this 1 liner, but fuck it, we ball
             Dirac_Point = Data_Run["Gate Voltage"][Data_Run[keyC].index(max(Data_Run[keyC]))]
-            Dirac_Message = Dirac_Message + f"{keyC}:{Dirac_Point}|"
+            Dirac_Message = Dirac_Message + f"{keyC}:{Dirac_Point:.2f}|"
     dirac_textbox.insert(END, Dirac_Message+"\n")
     #Inserting the gate voltage leftmost column
     Recorded_Data = pd.DataFrame.from_dict(Formated_Data)
@@ -304,7 +313,7 @@ File_Name.grid(row=3, column=1)
 Measure.grid(row=4,column=0)
 Abort_Measure.grid(row=4,column=1)
 
-dirac_textbox = Text(master=dirac_window)
+dirac_textbox = Text(master=dirac_window, width=350)
 dirac_textbox.pack()
 
 
