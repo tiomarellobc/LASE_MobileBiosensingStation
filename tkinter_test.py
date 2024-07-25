@@ -171,7 +171,7 @@ def Begin_Measurement(Channel_Input, Start_Vg, End_Vg, Delta_Vg):
     data_run = dict()
     for device in devices:
         device_label = device.Device_Name
-        plot_data[device_label], = LivePlot.plot([], [], label=device_label)
+        plot_data[device_label] = LivePlot.plot([], [], label=device_label)
         # Device_Data[Channel] = ([],[])
         data_run[device_label] = []
     data_run["Gate Voltage"] = []
